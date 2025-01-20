@@ -1,6 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:screenshot/screenshot.dart';
 import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,9 +38,12 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController controller = TextEditingController();
+  ScreenshotController screenshotController = ScreenshotController();
   final ImagePicker picker = ImagePicker();
   late XFile? image = XFile('');
   late XFile? photo = XFile('');
+  late Uint8List _imageFile;
+  BoxFit? fit = BoxFit.fill;
 
   DecorationImage? _decorationImage() {
     if (image!.path.isNotEmpty) {
@@ -51,9 +58,21 @@ class _MyHomePageState extends State<MyHomePage> {
     return null;
   }
 
+  ImageProvider fileImage() {
+    if (image!.path.isNotEmpty) {
+      return FileImage(File(image!.path));
+    }
+    if (photo!.path.isNotEmpty) {
+      return FileImage(File(photo!.path));
+    }
+
+    return FileImage(File('path'));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      //resizeToAvoidBottomInset:false,
       appBar: AppBar(
         centerTitle: false,
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -61,59 +80,106 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
         actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.share))],
       ),
-      body: Center(
-        child: Column(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ListView(
           children: <Widget>[
-            const SizedBox(
-              height: 16,
-            ),
-            Container(
-              width: MediaQuery.of(context).size.width * 0.9,
-              height: MediaQuery.of(context).size.height * 0.6,
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(8)),
-                  boxShadow: [BoxShadow(blurRadius: 0.5, spreadRadius: 1)],
-                  color: Colors.white,
-                  image: _decorationImage()),
-              child: Column(
-                children: [
-                  const SizedBox(
-                    height: 12,
-                  ),
-                  InkWell(
-                    onTap: () {
-                      showModalBottomSheet(
-                          context: context,
-                          builder: (context) => openImagepicker());
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text(
-                        "Tap to change image",
-                        style: TextStyle(fontSize: 40),
-                      ),
+            Screenshot(
+              controller: screenshotController,
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.9,
+                height: MediaQuery.of(context).size.height * 0.6,
+                decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                    boxShadow: const [
+                      BoxShadow(blurRadius: 0.5, spreadRadius: 1)
+                    ],
+                    color: Colors.white,
+                    image: DecorationImage(
+                      image: fileImage(),
+                      fit: fit,
+                    )),
+                child: Column(
+                  children: [
+                    const SizedBox(
+                      height: 12,
                     ),
-                  ),
-                  const Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: TextField(
-                      decoration: const InputDecoration(
-                          label: Text("Tap to enter text")),
-                      controller: controller,
+                    InkWell(
+                      onTap: () {
+                        showModalBottomSheet(
+                            context: context,
+                            builder: (context) => openImagepicker());
+                      },
+                      child: (image!.path.isNotEmpty || photo!.path.isNotEmpty)
+                          ? const SizedBox()
+                          : const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                "Tap to change image",
+                                style: TextStyle(
+                                    fontSize: 38, fontWeight: FontWeight.bold),
+                              ),
+                            ),
                     ),
-                  ),
-                  const SizedBox(
-                    height: 12,
-                  ),
-                ],
+                    const Spacer(),
+                    Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.97,
+                          height: MediaQuery.of(context).size.height * 0.14,
+                          color: Colors.black.withOpacity(0.1),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: TextField(
+                            textAlign: TextAlign.center,
+                            textInputAction: TextInputAction.done,
+                            maxLength: null,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold),
+                            decoration: const InputDecoration(
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide.none),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide.none),
+                                //label: Text("Tap to enter text"),
+                                labelStyle: TextStyle(
+                                    color: Colors.black, fontSize: 18)),
+                            controller: controller,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // const SizedBox(
+                    //   height: 12,
+                    // ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(
               height: 12,
             ),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () async {
+                screenshotController
+                    .capture(delay: const Duration(milliseconds: 500))
+                    .then((value) async {
+                  _imageFile = value!;
+                  final tempDir = await getTemporaryDirectory();
+                  final file = await File('${tempDir.path}/image.png').create();
+                  await file.writeAsBytes(_imageFile);
+                  await Share.shareXFiles(
+                    [XFile(file.path, name: "Custom share")],
+                  );
+                  // await Share.shareXFiles([XFile('${file.path}/image.png')],
+                  //     text: 'Share image');
+                  setState(() {});
+                });
+              },
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -122,6 +188,178 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: 4,
                   ),
                   Icon(Icons.share_rounded)
+                ],
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                showModalBottomSheet(
+                    context: context,
+                    builder: (context) => Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              const Text(
+                                "Image fit",
+                                style: TextStyle(fontSize: 22),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(
+                                        color: Colors.black, width: 2),
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: InkWell(
+                                    onTap: () async {
+                                      setState(() {
+                                        fit = BoxFit.cover;
+                                      });
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Row(
+                                      children: [
+                                        Text(
+                                          "Cover",
+                                          style: TextStyle(fontSize: 18),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 16,
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(
+                                        color: Colors.black, width: 2),
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: InkWell(
+                                    onTap: () async {
+                                      setState(() {
+                                        fit = BoxFit.fill;
+                                      });
+                                       Navigator.pop(context);
+                                    },
+                                    child: const Row(
+                                      children: [
+                                        Text(
+                                          "Fill",
+                                          style: TextStyle(fontSize: 18),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                               SizedBox(
+                                height: 16,
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(
+                                        color: Colors.black, width: 2),
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: InkWell(
+                                    onTap: () async {
+                                      setState(() {
+                                        fit = BoxFit.contain;
+                                      });
+                                       Navigator.pop(context);
+                                    },
+                                    child: const Row(
+                                      children: [
+                                        Text(
+                                          "Contain",
+                                          style: TextStyle(fontSize: 18),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                               SizedBox(
+                                height: 16,
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(
+                                        color: Colors.black, width: 2),
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: InkWell(
+                                    onTap: () async {
+                                      setState(() {
+                                        fit = BoxFit.fitWidth;
+                                      });
+                                       Navigator.pop(context);
+                                    },
+                                    child: const Row(
+                                      children: [
+                                        Text(
+                                          "Fill width",
+                                          style: TextStyle(fontSize: 18),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                               SizedBox(
+                                height: 16,
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(
+                                        color: Colors.black, width: 2),
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: InkWell(
+                                    onTap: () async {
+                                      setState(() {
+                                        fit = BoxFit.fitHeight;
+                                      });
+                                       Navigator.pop(context);
+                                    },
+                                    child: const Row(
+                                      children: [
+                                        Text(
+                                          "Fill height",
+                                          style: TextStyle(fontSize: 18),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                               SizedBox(
+                                height: 16,
+                              ),
+                            ],
+                          ),
+                        ));
+              },
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text("Fit Image"),
+                  SizedBox(
+                    width: 4,
+                  ),
+                  Icon(Icons.image)
                 ],
               ),
             )
@@ -155,6 +393,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 onTap: () async {
                   image = await picker.pickImage(source: ImageSource.gallery);
                   setState(() {});
+                  if (!mounted) return;
                   Navigator.pop(context);
                 },
                 child: const Row(
@@ -185,7 +424,8 @@ class _MyHomePageState extends State<MyHomePage> {
               child: InkWell(
                 onTap: () async {
                   photo = await picker.pickImage(source: ImageSource.camera);
-                   setState(() {});
+                  setState(() {});
+                  if (!mounted) return;
                   Navigator.pop(context);
                 },
                 child: const Row(
