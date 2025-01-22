@@ -28,8 +28,8 @@ SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   image_picker_ios: c560581cceedb403a6ff17f2f816d7fea1421fc1
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
-  share_plus: 8b6f8b3447e494cca5317c8c3073de39b3600d1f
+  share_plus: 8875f4f2500512ea181eef553c3e27dba5135aad
 
-PODFILE CHECKSUM: 2597283ba86a08680414db2c73538ecba93ff4f5
+PODFILE CHECKSUM: b98b2b7fed4389cdb9ec59cc44fbc0b8d7288461
 
 COCOAPODS: 1.15.2

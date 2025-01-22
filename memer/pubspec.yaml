@@ -30,6 +30,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_lints: ^4.0.0
+  image_picker: ^1.0.4
+  screenshot: ^3.0.0
+  share_plus: '8.0.3'
+  #esys_flutter_share_plus: ^2.3.0
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -45,10 +50,8 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^4.0.0
-  image_picker: ^1.0.4
-  screenshot: ^3.0.0
-  share_plus: ^10.1.4
+  
+  
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:screenshot/screenshot.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+//import 'package:esys_flutter_share_plus/esys_flutter_share_plus.dart';
 
 void main() {
   runApp(const MyApp());
@@ -86,77 +88,106 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             Screenshot(
               controller: screenshotController,
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.9,
-                height: MediaQuery.of(context).size.height * 0.6,
-                decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(8)),
-                    boxShadow: const [
-                      BoxShadow(blurRadius: 0.5, spreadRadius: 1)
-                    ],
-                    color: Colors.white,
-                    image: DecorationImage(
-                      image: fileImage(),
-                      fit: fit,
-                    )),
-                child: Column(
-                  children: [
-                    const SizedBox(
-                      height: 12,
-                    ),
-                    InkWell(
-                      onTap: () {
-                        showModalBottomSheet(
-                            context: context,
-                            builder: (context) => openImagepicker());
-                      },
-                      child: (image!.path.isNotEmpty || photo!.path.isNotEmpty)
-                          ? const SizedBox()
-                          : const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Text(
-                                "Tap to change image",
-                                style: TextStyle(
-                                    fontSize: 38, fontWeight: FontWeight.bold),
+              child: InkWell(
+                onTap: (){
+                   showModalBottomSheet(
+                              context: context,
+                              builder: (context) => openImagepicker());
+                },
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.9,
+                  height: MediaQuery.of(context).size.height * 0.6,
+                  decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                      boxShadow: const [
+                        BoxShadow(blurRadius: 0.5, spreadRadius: 1)
+                      ],
+                      color: Colors.white,
+                      image: DecorationImage(
+                        image: fileImage(),
+                        fit: fit,
+                      )),
+                  child: Column(
+                    children: [
+                      const SizedBox(
+                        height: 12,
+                      ),
+                      InkWell(
+                        onTap: () {
+                          showModalBottomSheet(
+                              context: context,
+                              builder: (context) => openImagepicker());
+                        },
+                        child: (image!.path.isNotEmpty || photo!.path.isNotEmpty)
+                            ? const SizedBox()
+                            : const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  "Tap to change image",
+                                  style: TextStyle(
+                                      fontSize: 38, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                      ),
+                      const Spacer(),
+                      Stack(
+                        alignment: Alignment.bottomCenter,
+                        children: [
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.97,
+                            height: MediaQuery.of(context).size.height * 0.14,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                  stops: [0.1, 0.3, 0.4, 0.8],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.black.withOpacity(0.0),
+                                    Colors.black.withOpacity(0.1),
+                                    Colors.black.withOpacity(0.2),
+                                    Colors.black.withOpacity(0.9)
+                                  ]),
+                            ),
+                          ),
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            //height: MediaQuery.of(context).size.height* 0.4,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: TextField(
+                                maxLengthEnforcement:
+                                    MaxLengthEnforcement.enforced,
+                                textAlign: TextAlign.center,
+                                textInputAction: TextInputAction.done,
+                                maxLength: 60,
+                                maxLines: 3,
+                                minLines: 1,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold),
+                                decoration: const InputDecoration(
+                                    counterText: '',
+                                    errorBorder: OutlineInputBorder(
+                                        borderSide: BorderSide.none),
+                                    enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide.none),
+                                    focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide.none),
+                                    //label: Text("Tap to enter text"),
+                                    labelStyle: TextStyle(
+                                        color: Colors.black, fontSize: 18)),
+                                controller: controller,
                               ),
                             ),
-                    ),
-                    const Spacer(),
-                    Stack(
-                      alignment: Alignment.bottomCenter,
-                      children: [
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.97,
-                          height: MediaQuery.of(context).size.height * 0.14,
-                          color: Colors.black.withOpacity(0.1),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: TextField(
-                            textAlign: TextAlign.center,
-                            textInputAction: TextInputAction.done,
-                            maxLength: null,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold),
-                            decoration: const InputDecoration(
-                                enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide.none),
-                                focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide.none),
-                                //label: Text("Tap to enter text"),
-                                labelStyle: TextStyle(
-                                    color: Colors.black, fontSize: 18)),
-                            controller: controller,
                           ),
-                        ),
-                      ],
-                    ),
-                    // const SizedBox(
-                    //   height: 12,
-                    // ),
-                  ],
+                        ],
+                      ),
+                      // const SizedBox(
+                      //   height: 12,
+                      // ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -172,11 +203,16 @@ class _MyHomePageState extends State<MyHomePage> {
                   final tempDir = await getTemporaryDirectory();
                   final file = await File('${tempDir.path}/image.png').create();
                   await file.writeAsBytes(_imageFile);
+
+                  // await Share.fileFromMemory('Share image', 'image.png',
+                  //     value, 'image/png',
+                  //     text: 'My image .');
+
                   await Share.shareXFiles(
                     [XFile(file.path, name: "Custom share")],
                   );
-                  // await Share.shareXFiles([XFile('${file.path}/image.png')],
-                  //     text: 'Share image');
+                  await Share.shareXFiles([XFile('${file.path}/image.png')],
+                      text: 'Share image');
                   setState(() {});
                 });
               },
@@ -245,7 +281,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       setState(() {
                                         fit = BoxFit.fill;
                                       });
-                                       Navigator.pop(context);
+                                      Navigator.pop(context);
                                     },
                                     child: const Row(
                                       children: [
@@ -258,7 +294,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                 ),
                               ),
-                               SizedBox(
+                              SizedBox(
                                 height: 16,
                               ),
                               Container(
@@ -274,7 +310,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       setState(() {
                                         fit = BoxFit.contain;
                                       });
-                                       Navigator.pop(context);
+                                      Navigator.pop(context);
                                     },
                                     child: const Row(
                                       children: [
@@ -287,7 +323,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                 ),
                               ),
-                               SizedBox(
+                              SizedBox(
                                 height: 16,
                               ),
                               Container(
@@ -303,7 +339,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       setState(() {
                                         fit = BoxFit.fitWidth;
                                       });
-                                       Navigator.pop(context);
+                                      Navigator.pop(context);
                                     },
                                     child: const Row(
                                       children: [
@@ -316,7 +352,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                 ),
                               ),
-                               SizedBox(
+                              SizedBox(
                                 height: 16,
                               ),
                               Container(
@@ -332,7 +368,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       setState(() {
                                         fit = BoxFit.fitHeight;
                                       });
-                                       Navigator.pop(context);
+                                      Navigator.pop(context);
                                     },
                                     child: const Row(
                                       children: [
@@ -345,7 +381,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                 ),
                               ),
-                               SizedBox(
+                              SizedBox(
                                 height: 16,
                               ),
                             ],
@@ -391,6 +427,7 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.all(8.0),
               child: InkWell(
                 onTap: () async {
+                  controller.text = '';
                   image = await picker.pickImage(source: ImageSource.gallery);
                   setState(() {});
                   if (!mounted) return;
@@ -423,6 +460,7 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.all(8.0),
               child: InkWell(
                 onTap: () async {
+                  controller.text = '';
                   photo = await picker.pickImage(source: ImageSource.camera);
                   setState(() {});
                   if (!mounted) return;
